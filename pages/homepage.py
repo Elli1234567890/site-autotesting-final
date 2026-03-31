@@ -219,6 +219,27 @@ class HomePage:
                       attachment_type=allure.attachment_type.PNG)
         return self
 
+    @allure.step("Нажимаем кнопку Submit и проверяем alert")
+    def submit_and_verify_alert(self, expected_text: str):
+        button = self.wait_helper.wait_for_element_clickable(self.SUBMIT_BUTTON)
+        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center', behavior: 'smooth'});", button)
+        time.sleep(0.5)
+        self.wait_helper.wait_for_element_clickable(self.SUBMIT_BUTTON)
+        allure.attach(self.driver.get_screenshot_as_png(),
+                      name="before_submit",
+                      attachment_type=allure.attachment_type.PNG)
+        try:
+            button.click()
+        except:
+            self.driver.execute_script("arguments[0].click();", button)
+        alert = self.wait_helper.wait_for_alert()
+        assert alert.text == expected_text, f"Ожидался alert с текстом '{expected_text}', получен '{alert.text}'"
+        alert.accept()
+        allure.attach(self.driver.get_screenshot_as_png(),
+                      name="after_alert",
+                      attachment_type=allure.attachment_type.PNG)
+        return self
+
     @allure.step("Нажимаем кнопку Submit, проверяем что alert не появился")
     def submit_and_expect_no_alert(self):
         button = self.wait_helper.wait_for_element_clickable(self.SUBMIT_BUTTON)
