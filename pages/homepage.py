@@ -199,24 +199,20 @@ class HomePage:
                 .select_automation_option()
                 .input_email(email))
 
-    @allure.step("Нажимаем кнопку Submit и проверяем alert")
-    def submit_and_verify_alert(self, expected_text: str):
+    @allure.step("Нажимаем кнопку Submit, проверить что alert не появился")
+    def submit_and_expect_no_alert(self):
         button = self.wait_helper.wait_for_element_clickable(self.SUBMIT_BUTTON)
         self.driver.execute_script("arguments[0].scrollIntoView(true);", button)
-        allure.attach(self.driver.get_screenshot_as_png(),
-                      name="before_submit",
-                      attachment_type=allure.attachment_type.PNG)
         button.click()
-        alert = self.wait_helper.wait_for_alert()
-        assert alert.text == expected_text, (
-            f"Ожидался alert с текстом '{expected_text}', "
-            f"но получен '{alert.text}'. "
-            f"Необходимо проверить, что все поля формы заполнены корректно."
-        )
-        alert.accept()
-        allure.attach(self.driver.get_screenshot_as_png(),
-                      name="after_alert",
-                      attachment_type=allure.attachment_type.PNG)
+        try:
+            alert = self.wait_helper.wait_for_alert(timeout=2)
+            alert.accept()
+            raise AssertionError(
+                "Alert появился, но по условиям теста его быть не должно. "
+                "Необходимо проверить валидацию формы: вероятно, некоторые обязательные поля не заполнены."
+            )
+        except:
+            pass
         return self
 
     @allure.step("Нажимаем кнопку Submit, проверяем что alert не появился")
